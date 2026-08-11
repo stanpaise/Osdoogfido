@@ -1,7 +1,8 @@
+import json
 import sqlite3
 from contextlib import closing
 from datetime import date
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 
 class Storage:
@@ -29,6 +30,19 @@ class Storage:
                     fees_quote REAL NOT NULL,
                     realized_pnl_quote REAL NOT NULL,
                     dry_run INTEGER NOT NULL
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS status (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    updated_at TEXT NOT NULL,
+                    dry_run INTEGER NOT NULL,
+                    halted INTEGER NOT NULL,
+                    quotes_json TEXT NOT NULL,
+                    best_opportunity_json TEXT,
+                    last_error TEXT
                 )
                 """
             )
@@ -68,3 +82,60 @@ class Storage:
             )
             (total,) = cursor.fetchone()
             return total or 0.0
+
+    def recent_trades(self, limit: int = 50) -> List[Dict[str, Any]]:
+        with closing(self._connect()) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(
+                "SELECT * FROM trades ORDER BY id DESC LIMIT ?",
+                (limit,),
+            )
+            return [dict(row) for row in cursor.fetchall()]
+
+    def update_status(
+        self,
+        updated_at: str,
+        dry_run: bool,
+        halted: bool,
+        quotes: Dict[str, Any],
+        best_opportunity: Optional[Dict[str, Any]],
+        last_error: Optional[str] = None,
+    ) -> None:
+        with closing(self._connect()) as conn:
+            conn.execute(
+                """
+                INSERT INTO status (id, updated_at, dry_run, halted, quotes_json, best_opportunity_json, last_error)
+                VALUES (1, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    updated_at=excluded.updated_at,
+                    dry_run=excluded.dry_run,
+                    halted=excluded.halted,
+                    quotes_json=excluded.quotes_json,
+                    best_opportunity_json=excluded.best_opportunity_json,
+                    last_error=excluded.last_error
+                """,
+                (
+                    updated_at,
+                    int(dry_run),
+                    int(halted),
+                    json.dumps(quotes),
+                    json.dumps(best_opportunity) if best_opportunity is not None else None,
+                    last_error,
+                ),
+            )
+            conn.commit()
+
+    def get_status(self) -> Optional[Dict[str, Any]]:
+        with closing(self._connect()) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute("SELECT * FROM status WHERE id = 1")
+            row = cursor.fetchone()
+            if row is None:
+                return None
+            data = dict(row)
+            data["dry_run"] = bool(data["dry_run"])
+            data["halted"] = bool(data["halted"])
+            data["quotes"] = json.loads(data.pop("quotes_json") or "{}")
+            best_raw = data.pop("best_opportunity_json")
+            data["best_opportunity"] = json.loads(best_raw) if best_raw else None
+            return data

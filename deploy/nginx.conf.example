@@ -1,0 +1,20 @@
+# Optional: only needed if you want the dashboard reachable over the public
+# internet with HTTPS, instead of via an SSH tunnel to 127.0.0.1.
+#
+# Install certbot and run `certbot --nginx -d dashboard.yourdomain.com` to
+# provision the TLS cert; it will rewrite the listen/ssl_certificate lines
+# below automatically. Then set DASHBOARD_HOST=127.0.0.1 in .env (nginx is
+# the only thing that should reach the dashboard directly).
+
+server {
+    listen 80;
+    server_name dashboard.yourdomain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -1,0 +1,22 @@
+[Unit]
+Description=Osdoogfido arbitrage trading bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=osdoogfido
+WorkingDirectory=/opt/osdoogfido
+EnvironmentFile=/opt/osdoogfido/.env
+ExecStart=/opt/osdoogfido/.venv/bin/python -m bot.main
+Restart=on-failure
+RestartSec=10
+
+# Basic hardening. Loosen if your distro's systemd is older and rejects these.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/osdoogfido
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Osdoogfido &mdash; Arbitrage Bot Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #888; margin-top: 0; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .badges { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .badge {
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid currentColor;
+    }
+    .badge.green { color: #1a7f37; }
+    .badge.red { color: #cf222e; }
+    .badge.gray { color: #6e7781; }
+    .badge.amber { color: #9a6700; }
+    section { margin-bottom: 2rem; }
+    h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.04em; color: #666; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #ddd; }
+    th { color: #666; font-weight: 600; }
+    .pnl-positive { color: #1a7f37; }
+    .pnl-negative { color: #cf222e; }
+    .empty { color: #888; font-style: italic; }
+    .error-banner {
+      background: #fff1f0;
+      border: 1px solid #cf222e;
+      color: #cf222e;
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    .opportunity-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Osdoogfido Arbitrage Bot</h1>
+  <p class="subtitle" id="symbol-line">Loading&hellip;</p>
+
+  <div class="error-banner" id="error-banner"></div>
+
+  <div class="badges" id="badges"></div>
+
+  <section>
+    <h2>Best current opportunity</h2>
+    <div id="opportunity">Loading&hellip;</div>
+  </section>
+
+  <section>
+    <h2>Live quotes</h2>
+    <table>
+      <thead>
+        <tr><th>Exchange</th><th>Bid</th><th>Ask</th><th>Taker fee</th></tr>
+      </thead>
+      <tbody id="quotes-body"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Recent trades</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Time (UTC)</th><th>Buy</th><th>Sell</th><th>Size</th><th>P&amp;L</th><th>Mode</th>
+        </tr>
+      </thead>
+      <tbody id="trades-body"></tbody>
+    </table>
+  </section>
+
+  <script>
+    function fmt(n, digits) {
+      if (n === null || n === undefined) return "&mdash;";
+      return Number(n).toFixed(digits === undefined ? 2 : digits);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    async function refresh() {
+      const errorBanner = document.getElementById("error-banner");
+      try {
+        const [statusRes, tradesRes] = await Promise.all([
+          fetch("/api/status"),
+          fetch("/api/trades"),
+        ]);
+        if (!statusRes.ok || !tradesRes.ok) {
+          throw new Error("HTTP " + statusRes.status + " / " + tradesRes.status);
+        }
+        const data = await statusRes.json();
+        const trades = await tradesRes.json();
+        render(data, trades);
+        errorBanner.style.display = "none";
+      } catch (err) {
+        errorBanner.textContent = "Failed to reach dashboard API: " + err.message;
+        errorBanner.style.display = "block";
+      }
+    }
+
+    function render(data, trades) {
+      document.getElementById("symbol-line").textContent =
+        data.symbol + " | max trade $" + data.max_trade_usd +
+        " | daily loss limit $" + data.daily_loss_limit_usd +
+        " | min profit " + data.min_profit_pct + "%";
+
+      const status = data.status;
+      const badges = document.getElementById("badges");
+      badges.innerHTML = "";
+
+      function addBadge(text, cls) {
+        const span = document.createElement("span");
+        span.className = "badge " + cls;
+        span.textContent = text;
+        badges.appendChild(span);
+      }
+
+      if (!status) {
+        addBadge("Waiting for first cycle...", "gray");
+      } else {
+        addBadge(status.dry_run ? "DRY RUN" : "LIVE TRADING", status.dry_run ? "amber" : "red");
+        addBadge(status.halted ? "HALTED" : "RUNNING", status.halted ? "red" : "green");
+        addBadge("Updated " + status.updated_at, "gray");
+        if (status.last_error) {
+          addBadge("Last error: " + status.last_error, "red");
+        }
+      }
+
+      const pnlClass = data.daily_pnl >= 0 ? "pnl-positive" : "pnl-negative";
+      addBadge("Today's P&L: " + fmt(data.daily_pnl, 4), pnlClass.includes("positive") ? "green" : "red");
+
+      const oppDiv = document.getElementById("opportunity");
+      const opp = status && status.best_opportunity;
+      if (!opp) {
+        oppDiv.innerHTML = '<p class="empty">No profitable opportunity this cycle.</p>';
+      } else {
+        oppDiv.innerHTML =
+          '<div class="opportunity-card">' +
+          "<strong>" + escapeHtml(opp.symbol) + "</strong><br>" +
+          "Buy on <strong>" + escapeHtml(opp.buy_exchange) + "</strong> @ " + fmt(opp.buy_price) +
+          " &rarr; Sell on <strong>" + escapeHtml(opp.sell_exchange) + "</strong> @ " + fmt(opp.sell_price) + "<br>" +
+          "Net profit: " + fmt(opp.net_profit_pct, 3) + "%" +
+          "</div>";
+      }
+
+      const quotesBody = document.getElementById("quotes-body");
+      quotesBody.innerHTML = "";
+      const quotes = (status && status.quotes) || {};
+      const exchangeIds = Object.keys(quotes);
+      if (exchangeIds.length === 0) {
+        quotesBody.innerHTML = '<tr><td colspan="4" class="empty">No quotes yet.</td></tr>';
+      } else {
+        exchangeIds.forEach(function (eid) {
+          const q = quotes[eid];
+          const tr = document.createElement("tr");
+          tr.innerHTML =
+            "<td>" + escapeHtml(eid) + "</td>" +
+            "<td>" + fmt(q.bid) + "</td>" +
+            "<td>" + fmt(q.ask) + "</td>" +
+            "<td>" + fmt(q.taker_fee * 100, 3) + "%</td>";
+          quotesBody.appendChild(tr);
+        });
+      }
+
+      const tradesBody = document.getElementById("trades-body");
+      tradesBody.innerHTML = "";
+      if (!trades || trades.length === 0) {
+        tradesBody.innerHTML = '<tr><td colspan="6" class="empty">No trades yet.</td></tr>';
+      } else {
+        trades.forEach(function (t) {
+          const tr = document.createElement("tr");
+          const pnlCls = t.realized_pnl_quote >= 0 ? "pnl-positive" : "pnl-negative";
+          tr.innerHTML =
+            "<td>" + escapeHtml(t.timestamp) + "</td>" +
+            "<td>" + escapeHtml(t.buy_exchange) + " @ " + fmt(t.buy_price) + "</td>" +
+            "<td>" + escapeHtml(t.sell_exchange) + " @ " + fmt(t.sell_price) + "</td>" +
+            "<td>" + fmt(t.trade_size_quote) + "</td>" +
+            '<td class="' + pnlCls + '">' + fmt(t.realized_pnl_quote, 4) + "</td>" +
+            "<td>" + (t.dry_run ? "dry run" : "live") + "</td>";
+          tradesBody.appendChild(tr);
+        });
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

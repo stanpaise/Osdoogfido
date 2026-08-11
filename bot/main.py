@@ -2,6 +2,7 @@ import logging
 import signal
 import sys
 import time
+from dataclasses import asdict
 from datetime import datetime, timezone
 
 from .arbitrage import find_opportunities
@@ -91,8 +92,16 @@ def run() -> None:
         cycle_start = time.time()
         try:
             _run_cycle(config, exchanges, symbols, storage, risk_manager)
-        except Exception:
+        except Exception as exc:
             logger.exception("Error during trading cycle")
+            storage.update_status(
+                datetime.now(timezone.utc).isoformat(),
+                config.dry_run,
+                risk_manager.is_halted(),
+                {},
+                None,
+                last_error=str(exc),
+            )
 
         elapsed = time.time() - cycle_start
         time.sleep(max(config.poll_interval_seconds - elapsed, 0))
@@ -101,11 +110,15 @@ def run() -> None:
 
 
 def _run_cycle(config, exchanges, symbols, storage, risk_manager) -> None:
+    now = datetime.now(timezone.utc).isoformat()
     quotes = fetch_all_quotes(exchanges, symbols)
     opportunities = find_opportunities(quotes, config.min_profit_pct, config.slippage_buffer_pct)
+    quotes_out = {eid: asdict(q) for eid, q in quotes.items()}
+    halted = risk_manager.is_halted()
 
     if not opportunities:
         logger.info("No profitable opportunities this cycle (%d exchanges quoted)", len(quotes))
+        storage.update_status(now, config.dry_run, halted, quotes_out, None)
         return
 
     best = opportunities[0]
@@ -118,8 +131,9 @@ def _run_cycle(config, exchanges, symbols, storage, risk_manager) -> None:
         best.sell_price,
         best.net_profit_pct,
     )
+    storage.update_status(now, config.dry_run, halted, quotes_out, asdict(best))
 
-    if risk_manager.is_halted():
+    if halted:
         logger.warning("Risk manager halted trading (daily loss limit reached).")
         return
 
@@ -136,7 +150,7 @@ def _run_cycle(config, exchanges, symbols, storage, risk_manager) -> None:
     result = execute_opportunity(best, sizing.trade_size_quote, exchanges, config.dry_run)
     storage.record_trade(
         {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": now,
             "symbol": result.opportunity.symbol,
             "buy_exchange": result.opportunity.buy_exchange,
             "sell_exchange": result.opportunity.sell_exchange,

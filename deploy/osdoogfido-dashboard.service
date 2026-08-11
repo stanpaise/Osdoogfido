@@ -1,0 +1,24 @@
+[Unit]
+Description=Osdoogfido dashboard (view-only web UI)
+After=network-online.target
+
+[Service]
+Type=simple
+User=osdoogfido
+WorkingDirectory=/opt/osdoogfido
+EnvironmentFile=/opt/osdoogfido/.env
+# Binds to 127.0.0.1 by default (see .env DASHBOARD_HOST) -- reach it via an
+# SSH tunnel or put a TLS-terminating reverse proxy (nginx/Caddy) in front of
+# it. Do not point DASHBOARD_HOST at 0.0.0.0 without a reverse proxy in
+# front, since Basic Auth alone sends credentials in cleartext over plain HTTP.
+ExecStart=/opt/osdoogfido/.venv/bin/gunicorn -w 2 -b ${DASHBOARD_HOST}:${DASHBOARD_PORT} dashboard.app:app
+Restart=on-failure
+RestartSec=10
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/osdoogfido
+
+[Install]
+WantedBy=multi-user.target
