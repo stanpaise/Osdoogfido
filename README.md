@@ -58,9 +58,12 @@ dashboard/
   app.py            View-only Flask dashboard (Basic Auth required)
   templates/dashboard.html
 deploy/
-  osdoogfido-bot.service         systemd unit for the trading loop
-  osdoogfido-dashboard.service   systemd unit for the dashboard
+  osdoogfido-bot.service         systemd unit for the trading loop (Linux)
+  osdoogfido-dashboard.service   systemd unit for the dashboard (Linux)
   nginx.conf.example             optional TLS reverse proxy for public access
+  windows/                       setup script, Task Scheduler-based run scripts,
+                                  and a full walkthrough for Windows VPS/RDP hosts
+                                  (e.g. fxsvps.com and other Forex VPS providers)
 tests/
   test_arbitrage.py
   test_risk_manager.py
@@ -131,11 +134,17 @@ python -m dashboard.app
 Then open `http://127.0.0.1:8080` and log in with the credentials you set.
 It polls its own API every 5 seconds, so leave it open and it updates live.
 
-### Run it 24/7 on a small cloud VM
+### Run it 24/7 on a VM
 
-I can't provision cloud infrastructure on your behalf (no access to your
-cloud account), but here's the exact path once you have a VM (DigitalOcean,
-Hetzner, Linode — any small Ubuntu box works, $5-6/mo tier is plenty):
+**On a Windows VPS (RDP access)** — e.g. fxsvps.com and other "Forex VPS"
+providers, which default to Windows Server — see
+[`deploy/windows/README.md`](deploy/windows/README.md) for the full
+walkthrough: installing Python/Git over RDP, running under `waitress`
+(the Windows-compatible WSGI server; `gunicorn` below doesn't work on
+Windows), and making both processes persistent with Task Scheduler.
+
+**On a Linux VM (SSH access)** — DigitalOcean, Hetzner, Linode, or any
+small Ubuntu box ($5-6/mo tier is plenty):
 
 1. **Provision** a small Ubuntu 22.04+ VM and SSH in.
 
