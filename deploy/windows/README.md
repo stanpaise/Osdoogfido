@@ -48,6 +48,18 @@ Windows-compatible WSGI server the dashboard runs under here — `gunicorn`,
 used in the Linux instructions, does not work on Windows), and copies
 `.env.example` to `.env` if you don't already have one.
 
+It installs `ccxt` (the exchange library) separately with `--no-deps` — its
+normal pip install pulls in packages (`coincurve` in particular) that are
+only needed for exchange types this bot doesn't use, and on some Windows
+Python versions `coincurve` has no prebuilt installer and fails to compile
+from source. Skipping it avoids that entirely; nothing this bot uses
+depends on it.
+
+If setup fails partway through with a wall of red text mentioning a
+package name, that's useful — screenshot it and it can usually be fixed by
+adjusting `requirements.txt`/`requirements-ccxt.txt` rather than anything
+you did wrong.
+
 Edit `.env`:
 
 ```powershell

@@ -83,11 +83,18 @@ webpage" to "an order gets placed."
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pip install --no-deps -r requirements-ccxt.txt
 
 cp .env.example .env
 # edit .env: add API keys for the exchanges you want to trade live on,
 # review MAX_TRADE_USD / DAILY_LOSS_LIMIT_USD / MIN_PROFIT_PCT
 ```
+
+(`ccxt` installs separately with `--no-deps` because its normal pip metadata
+pulls in `aiohttp`/`orjson`/`coincurve`/`uvloop` and friends for its async
+client and DEX-signing support, none of which this bot uses — and on some
+platforms those extras fail to install for reasons unrelated to anything
+here. See the comment in `requirements-ccxt.txt` for details.)
 
 Run it (starts in dry-run mode unless you changed `.env`):
 
@@ -160,6 +167,7 @@ small Ubuntu box ($5-6/mo tier is plenty):
    cd /opt/osdoogfido
    sudo python3 -m venv .venv
    sudo .venv/bin/pip install -r requirements.txt
+   sudo .venv/bin/pip install --no-deps -r requirements-ccxt.txt
    sudo cp .env.example .env
    sudo nano .env   # fill in API keys, DASHBOARD_USERNAME/PASSWORD, risk limits
    sudo chown -R osdoogfido:osdoogfido /opt/osdoogfido
@@ -201,6 +209,7 @@ small Ubuntu box ($5-6/mo tier is plenty):
 cd /opt/osdoogfido
 sudo git pull
 sudo .venv/bin/pip install -r requirements.txt
+sudo .venv/bin/pip install --no-deps -r requirements-ccxt.txt
 sudo systemctl restart osdoogfido-bot osdoogfido-dashboard
 ```
 

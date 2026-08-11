@@ -1,6 +1,14 @@
-ccxt>=4.3.0
 python-dotenv>=1.0.0
 pytest>=8.0.0
 Flask>=3.0.0
 gunicorn>=22.0.0; sys_platform != "win32"
 waitress>=3.0.0; sys_platform == "win32"
+
+# ccxt's own runtime dependencies for the sync REST client we actually use
+# (its full pip metadata also demands aiohttp/orjson/coincurve/uvloop/etc.
+# for its optional async and DEX-signing features, which we never touch --
+# see requirements-ccxt.txt for why that's installed separately with
+# --no-deps instead of listed here)
+certifi>=2024.0.0
+requests>=2.31.0
+cryptography>=42.0.0

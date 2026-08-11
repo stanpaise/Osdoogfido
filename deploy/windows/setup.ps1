@@ -13,6 +13,11 @@ python -m venv .venv
 Write-Host "Installing dependencies ..."
 & .\.venv\Scripts\python.exe -m pip install --upgrade pip
 & .\.venv\Scripts\pip.exe install -r requirements.txt
+& .\.venv\Scripts\pip.exe install --no-deps -r requirements-ccxt.txt
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Dependency install failed -- see the pip output above for which package."
+    exit 1
+}
 
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"

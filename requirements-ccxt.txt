@@ -1,0 +1,14 @@
+# Install this file with --no-deps (see README.md "Setup").
+#
+# ccxt's normal pip install pulls in aiohttp/orjson/uvloop/coincurve/etc,
+# used only by its optional async client and DEX exchanges that need
+# secp256k1 message signing -- none of which this bot uses (Binance,
+# Coinbase, Kraken, KuCoin are all plain REST spot exchanges). On some
+# platforms (older Windows Python builds in particular) coincurve has no
+# prebuilt wheel and its source build is broken by an upstream packaging
+# bug, which blocks installation for no reason relevant to us.
+#
+# Installing ccxt with --no-deps skips all of that; its actual runtime
+# dependencies (certifi, requests, cryptography) are listed in
+# requirements.txt and get installed normally.
+ccxt>=4.3.0,<5.0.0
