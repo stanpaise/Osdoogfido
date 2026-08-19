@@ -137,36 +137,41 @@ class AITextService {
       throw new Error('No AI text provider configured');
     }
 
-    const params = {
+    let attemptParams = {
       model,
       messages: [{ role: 'user', content: prompt }],
       temperature,
-    };
-
-    try {
       // Newer OpenAI models (gpt-5.x and later) reject the legacy max_tokens
       // parameter with a 400 error and require max_completion_tokens instead.
-      const response = await this.client.chat.completions.create({
-        ...params,
-        max_completion_tokens: maxTokens,
-      });
-      return this._extractContent(response);
-    } catch (error) {
-      // Older models and some providers reject max_completion_tokens with a 400;
-      // retry the same request using the legacy max_tokens spelling.
-      if (
-        error &&
-        error.status === 400 &&
-        /max(_completion)?_tokens/i.test(error.message || '')
-      ) {
-        const response = await this.client.chat.completions.create({
-          ...params,
-          max_tokens: maxTokens,
-        });
+      max_completion_tokens: maxTokens,
+    };
+
+    // Reasoning-tier models (e.g. gpt-5.x) and older/other providers each
+    // reject different parameters with a 400. Retry, dropping whichever
+    // parameter the error names, instead of failing on the first mismatch.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const response = await this.client.chat.completions.create(attemptParams);
         return this._extractContent(response);
+      } catch (error) {
+        if (!error || error.status !== 400) {
+          throw error;
+        }
+        const message = error.message || '';
+        if (/temperature/i.test(message) && 'temperature' in attemptParams) {
+          const { temperature: _temperature, ...rest } = attemptParams;
+          attemptParams = rest;
+          continue;
+        }
+        if (/max(_completion)?_tokens/i.test(message) && 'max_completion_tokens' in attemptParams) {
+          const { max_completion_tokens: _maxCompletionTokens, ...rest } = attemptParams;
+          attemptParams = { ...rest, max_tokens: maxTokens };
+          continue;
+        }
+        throw error;
       }
-      throw error;
     }
+    throw new Error(`${this.providerName} rejected the request after retrying for known parameter restrictions.`);
   }
 
   _extractContent(response) {
