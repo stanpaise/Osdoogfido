@@ -59,6 +59,15 @@ class AITextService {
       return this._initOpenAICompatible(PROVIDERS[provider], apiKey, model);
     }
 
+    // The walkthrough saves an OpenAI key to credentials.openai (matching
+    // credential-manager.js's hasAITextProvider check), not the generic
+    // credentials.aiProvider shape above — without this, a saved OpenAI key
+    // is silently ignored and every agent falls back to templates.
+    const openaiKey = credentials.openai?.apiKey || process.env.OPENAI_API_KEY;
+    if (openaiKey) {
+      return this._initOpenAICompatible(PROVIDERS.openai, openaiKey, credentials.openai?.model);
+    }
+
     for (const [, preset] of Object.entries(PROVIDERS)) {
       const key = process.env[preset.envKey];
       if (key) {
