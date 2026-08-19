@@ -99,10 +99,21 @@ class AITextService {
     const temperature = options.temperature ?? 0.7;
 
     if (this.gemini) {
+      const config = { maxOutputTokens: maxTokens, temperature };
+      // Flash models "think" before answering by default, and that hidden
+      // reasoning draws from the same maxOutputTokens budget as the visible
+      // reply. On a small budget (e.g. the walkthrough's key-test call) the
+      // model can spend the whole budget thinking and return no visible
+      // text at all — which looks like a bad key/quota, but isn't. Pro
+      // models don't support disabling thinking, so this only applies to
+      // flash, which does.
+      if (/flash/i.test(model)) {
+        config.thinkingConfig = { thinkingBudget: 0 };
+      }
       const response = await this.gemini.models.generateContent({
         model,
         contents: prompt,
-        config: { maxOutputTokens: maxTokens, temperature },
+        config,
       });
       const text = response && response.text;
       if (typeof text !== 'string' || !text.trim()) {

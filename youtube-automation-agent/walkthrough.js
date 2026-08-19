@@ -284,7 +284,11 @@ class SetupWalkthrough {
 
     try {
       const service = new AITextService(guide.validationCreds(apiKey, model));
-      const reply = await service.generateText('Reply with the single word OK.', { maxTokens: 20, temperature: 0 });
+      // 200 (not a token-tight 20) leaves headroom for models that spend part
+      // of the budget on hidden "thinking" tokens before the visible reply —
+      // Gemini Pro in particular can't disable thinking, and a too-small
+      // budget makes a perfectly valid key look like it "didn't work".
+      const reply = await service.generateText('Reply with the single word OK.', { maxTokens: 200, temperature: 0 });
       return typeof reply === 'string' && reply.length > 0;
     } catch (error) {
       console.log(chalk.red(`  ✗ ${error.message}`));
