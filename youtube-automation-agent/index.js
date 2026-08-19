@@ -109,6 +109,7 @@ class YouTubeAutomationAgent {
 
   async logCapabilitySummary() {
     const { checkFFmpeg, ffmpegInstallHint } = require('./utils/ffmpeg');
+    const { checkPlaywrightChromium, playwrightInstallHint } = require('./utils/playwright-check');
     const creds = this.credentials.credentials || {};
 
     const hasText = this.credentials.hasAITextProvider();
@@ -121,6 +122,7 @@ class YouTubeAutomationAgent {
       hasGemini
     );
     const hasFFmpeg = await checkFFmpeg();
+    const hasChromium = await checkPlaywrightChromium();
     const hasUpload = Boolean(creds.youtube && this.credentials.tokens?.youtube);
 
     const capabilities = [
@@ -128,6 +130,7 @@ class YouTubeAutomationAgent {
       { name: 'Image generation (visuals/thumbnails)', ok: hasImages, hint: 'requires an OpenAI or Gemini API key — otherwise gradient slides are used' },
       { name: 'Voice narration (TTS)', ok: hasTTS, hint: 'configure OpenAI, Gemini, ElevenLabs, or Azure Speech — otherwise videos are silent' },
       { name: 'Video assembly (FFmpeg)', ok: hasFFmpeg, hint: ffmpegInstallHint() },
+      { name: 'Slideshow rendering (Chromium)', ok: hasChromium, hint: playwrightInstallHint() },
       { name: 'YouTube upload', ok: hasUpload, hint: 'run: npm run credentials:setup' }
     ];
 

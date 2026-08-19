@@ -9,6 +9,7 @@ const { CredentialManager } = require('./utils/credential-manager');
 const { AITextService, PROVIDERS } = require('./utils/ai-text-service');
 const { Database } = require('./database/db');
 const { checkFFmpeg, ffmpegInstallHint } = require('./utils/ffmpeg');
+const { checkPlaywrightChromium, playwrightInstallHint } = require('./utils/playwright-check');
 
 // Everything a beginner needs to know about each provider, in one place
 const AI_PROVIDER_GUIDE = {
@@ -164,6 +165,11 @@ class SetupWalkthrough {
     console.log(ffmpegOk
       ? chalk.green('  ✓ FFmpeg (video assembly)')
       : chalk.yellow(`  ✗ FFmpeg — ${ffmpegInstallHint()}`));
+
+    const chromiumOk = await checkPlaywrightChromium();
+    console.log(chromiumOk
+      ? chalk.green('  ✓ Chromium (slideshow rendering)')
+      : chalk.yellow(`  ✗ Chromium — ${playwrightInstallHint()}`));
 
     const directories = [
       'config', 'logs', 'data', 'data/production', 'data/assets', 'data/videos',
