@@ -597,6 +597,7 @@ class YouTubeAutomationAgent {
     strategy.brandVoice = profile.brand_voice || null;
     strategy.channelGoal = profile.goal || null;
     strategy.callToAction = profile.call_to_action || null;
+    strategy.visualStyle = profile.visual_style || null;
     this.logger.info(`Strategy generated: ${strategy.topic}`);
 
     // Step 2: Script Writing

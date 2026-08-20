@@ -62,7 +62,7 @@ class ProductionManagementAgent {
         status: 'processing',
         assets: {
           script: await this.processScript(script),
-          thumbnail: await this.processThumbnail(thumbnail, script),
+          thumbnail: await this.processThumbnail(thumbnail, script, strategy?.visualStyle),
           audio: null, // Will be generated later
           video: null, // Will be generated later
           captions: null // Will be generated later
@@ -212,11 +212,11 @@ class ProductionManagementAgent {
     return ttsText;
   }
 
-  async processThumbnail(thumbnail, script) {
+  async processThumbnail(thumbnail, script, visualStyle) {
     try {
       // Try to generate AI thumbnail first
       const thumbnailScript = thumbnail.script || script || { title: thumbnail.title || 'Untitled Video' };
-      const aiThumbnail = await this.aiVideoGenerator.generateThumbnail(thumbnailScript, 'ethereal');
+      const aiThumbnail = await this.aiVideoGenerator.generateThumbnail(thumbnailScript, visualStyle || 'ethereal');
       
       return {
         path: aiThumbnail.path,
@@ -291,14 +291,14 @@ class ProductionManagementAgent {
     this.logger.info('Generating AI video content...');
     
     try {
-      const { script } = productionData;
-      
+      const { script, strategy } = productionData;
+
       // Generate visual assets using DALL-E
       const visualPrompts = this.createVisualPromptsFromScript(script);
       const visualAssets = [];
-      
+
       for (const prompt of visualPrompts) {
-        const assets = await this.aiVideoGenerator.generateVisualAssets(prompt, 'ethereal', 1);
+        const assets = await this.aiVideoGenerator.generateVisualAssets(prompt, strategy?.visualStyle || 'ethereal', 1);
         visualAssets.push(...assets);
       }
       

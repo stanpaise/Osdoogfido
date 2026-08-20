@@ -247,7 +247,12 @@ class AIVideoGenerator {
       abstract: "abstract art, geometric shapes, gradient colors, artistic composition"
     };
 
-    const enhancement = styleEnhancements[style] || styleEnhancements.ethereal;
+    // `style` is usually one of the presets above, but a channel's own
+    // Visual Direction (free text from Channel Setup) is passed straight
+    // through here too — use it verbatim rather than silently discarding
+    // it in favor of the "ethereal" default whenever it doesn't match a
+    // known preset key.
+    const enhancement = styleEnhancements[style] || style || styleEnhancements.ethereal;
     return `${prompt}, ${enhancement}, high quality, 16:9 aspect ratio, digital art`;
   }
 
@@ -380,8 +385,14 @@ class AIVideoGenerator {
       args.push('-loop', '1', '-t', perSlide.toFixed(2), '-framerate', '30', '-i', still);
     }
 
+    // No -crf was set previously, which leaves libx264 on its default (23) —
+    // fine for typical footage, but visibly soft for AI-generated stills
+    // with fine texture detail. -crf 18 with a slower preset is close to
+    // visually lossless; local generation has time to spend on encoding.
+    const qualityArgs = ['-preset', 'slow', '-crf', '18'];
+
     if (stills.length === 1) {
-      args.push('-vf', 'format=yuv420p', '-c:v', 'libx264', videoPath);
+      args.push('-vf', 'format=yuv420p', '-c:v', 'libx264', ...qualityArgs, videoPath);
       await runFFmpeg(args);
       return videoPath;
     }
@@ -401,6 +412,7 @@ class AIVideoGenerator {
       '-filter_complex', filters.join(';'),
       '-map', '[vfinal]',
       '-c:v', 'libx264',
+      ...qualityArgs,
       '-r', '30',
       videoPath
     );
