@@ -461,9 +461,14 @@ class AIVideoGenerator {
         }
         
         .content {
+            position: relative;
+            z-index: 1;
             text-align: center;
             color: white;
             max-width: 80%;
+            padding: 24px 40px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 16px;
         }
         
         h1 {
@@ -491,8 +496,8 @@ class AIVideoGenerator {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.3;
-            z-index: -1;
+            opacity: 1;
+            z-index: 0;
         }
         
         .particles {
