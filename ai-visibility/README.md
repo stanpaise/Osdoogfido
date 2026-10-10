@@ -59,6 +59,6 @@ npm run batch -- prospects.csv --confirm  # live: AI scans + a cold email per ro
 
 Writes `results/<date>/summary.csv`, one JSON report per roofer, and (live mode only) `outreach.md` with an email per roofer that leads with the competitor the AI recommended instead. Emails are never generated from demo data. Without `--confirm`, live mode only prints the estimated cost.
 
-`prospects.csv` has 21 roofers across Dallas, Denver and Oklahoma City; 6 have verified websites. Fill in the rest from Google Maps.
+`prospects.csv` has 21 roofers across Dallas, Denver, Oklahoma City and Tulsa; 6 have verified websites. Fill in the rest from Google Maps.
 
 See [VALIDATION.md](VALIDATION.md) for how to prove people will pay before building more.
