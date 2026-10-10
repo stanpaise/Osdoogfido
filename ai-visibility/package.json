@@ -1,0 +1,18 @@
+{
+  "name": "ai-visibility",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI search visibility scanner for roofing contractors",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js",
+    "batch": "node scripts/batch.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  }
+}

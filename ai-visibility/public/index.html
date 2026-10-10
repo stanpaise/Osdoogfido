@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roofer AI Visibility Scan</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1b1d21; --muted:#5d636e; --line:#e3e4e8; --accent:#c2410c; --good:#15803d; --bad:#b91c1c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121316; --card:#1b1d22; --ink:#ececee; --muted:#a0a5ae; --line:#2c2f36; --accent:#fb923c; --good:#4ade80; --bad:#f87171; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height:1.2; margin: 0 0 8px; }
+  p.lead { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  label { display:block; font-weight:600; font-size:.9rem; margin: 12px 0 4px; }
+  input { width:100%; padding:10px 12px; font:inherit; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); }
+  .row { display:grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+  button { margin-top:18px; width:100%; padding:12px; font:inherit; font-weight:700; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .banner { padding:10px 14px; border-radius:8px; border:1px dashed var(--accent); color:var(--accent); margin-bottom:16px; font-size:.9rem; }
+  .score { display:flex; align-items:baseline; gap:12px; }
+  .score b { font-size:3.2rem; line-height:1; }
+  .sub { color:var(--muted); font-size:.9rem; }
+  ul, ol { padding-left: 20px; margin: 8px 0 0; }
+  li { margin: 6px 0; }
+  .yes { color: var(--good); font-weight:700; } .no { color: var(--bad); font-weight:700; }
+  .q { border-top:1px solid var(--line); padding:10px 0; }
+  .q:first-child { border-top:0; }
+  details summary { cursor:pointer; color:var(--muted); font-size:.9rem; }
+  pre { white-space: pre-wrap; font: .85rem/1.45 ui-monospace, monospace; color: var(--muted); }
+  .err { color: var(--bad); }
+  @media (max-width: 520px) { .row { grid-template-columns: 1fr; } h1 { font-size: 1.5rem; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Do AI assistants recommend your roofing company?</h1>
+  <p class="lead">Homeowners now ask AI assistants who to hire. We ask an AI 5 real homeowner questions about your city, check who it recommends, and audit your website for what AI looks for.</p>
+  <div id="mode"></div>
+
+  <form class="card" id="form">
+    <label for="businessName">Business name</label>
+    <input id="businessName" required placeholder="Smith Roofing">
+    <div class="row">
+      <div><label for="city">City</label><input id="city" required placeholder="Dallas"></div>
+      <div><label for="state">State</label><input id="state" placeholder="TX"></div>
+    </div>
+    <label for="website">Website</label>
+    <input id="website" required placeholder="smithroofing.com">
+    <button id="go" type="submit">Run free scan</button>
+    <p class="sub" id="status"></p>
+  </form>
+
+  <div id="results"></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+
+fetch("/api/health").then(r => r.json()).then(h => {
+  if (h.mode !== "live") $("mode").append(el("div", { className: "banner", textContent: "Demo mode: AI answers are sample data. Set ANTHROPIC_API_KEY to run real scans. The website audit is real." }));
+}).catch(() => {});
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = Object.fromEntries(["businessName", "city", "state", "website"].map(k => [k, $(k).value]));
+  $("go").disabled = true;
+  $("status").textContent = "Scanning: asking 5 questions and checking your site. This takes about a minute.";
+  $("results").replaceChildren();
+  try {
+    const res = await fetch("/api/scan", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Scan failed");
+    render(data);
+    $("status").textContent = "";
+  } catch (err) {
+    $("status").replaceChildren(el("span", { className: "err", textContent: err.message }));
+  } finally {
+    $("go").disabled = false;
+  }
+});
+
+function render(d) {
+  const name = d.input.businessName;
+  const out = [];
+  out.push(el("section", { className: "card" },
+    el("div", { className: "score" }, el("b", { textContent: d.score }), el("span", { textContent: "/ 100 AI visibility" })),
+    el("p", { className: "sub", textContent: `Recommended in ${d.mentionedIn} of ${d.questionsAnswered} AI answers (${d.aiScore}/${d.aiMax}) · Website readiness ${d.siteScore}/${d.siteMax}` })));
+
+  if (d.competitors.length) {
+    out.push(el("section", { className: "card" },
+      el("h2", { textContent: "Who AI recommends instead of you" }),
+      el("ol", {}, ...d.competitors.map(c => el("li", { textContent: `${c.name}: named in ${c.count} of ${d.questionsAnswered} answers` }))),
+      el("p", { className: "sub", textContent: "Every one of these is a lead you're not getting. Roofing leads cost roughly $70 to $160 each on Google Local Services Ads." })));
+  }
+
+  out.push(el("section", { className: "card" },
+    el("h2", { textContent: "Fix these first" }),
+    el("ol", {}, ...d.fixes.map(f => el("li", { textContent: f })))));
+
+  out.push(el("section", { className: "card" },
+    el("h2", { textContent: "What the AI said" }),
+    ...d.questions.map(q => el("div", { className: "q" },
+      el("div", {}, el("span", { className: q.mentioned ? "yes" : "no", textContent: q.mentioned ? (q.rank ? `#${q.rank} ` : "Cited ") : "Not named " }), q.question),
+      q.error ? el("div", { className: "err", textContent: q.error }) :
+        el("details", {}, el("summary", { textContent: q.recommended.length ? `Recommended: ${q.recommended.join(", ")}` : "No businesses named" }), el("pre", { textContent: q.answer }))))));
+
+  out.push(el("section", { className: "card" },
+    el("h2", { textContent: "Website check" }),
+    d.site.ok ? "" : el("p", { className: "err", textContent: `Couldn't load the site: ${d.site.error}` }),
+    el("ul", {}, ...d.site.checks.map(c => el("li", {}, el("span", { className: c.passed ? "yes" : "no", textContent: c.passed ? "✓ " : "✗ " }), c.label)))));
+
+  $("results").replaceChildren(...out);
+  $("results").scrollIntoView({ behavior: "smooth" });
+}
+</script>
+</body>
+</html>
