@@ -1,0 +1,24 @@
+# Validation prospects. Rows without a website are skipped: look them up on Google Maps and fill them in.
+# Aim for 10 per metro, ideally companies with 50+ Google reviews (established enough to pay $49/mo).
+businessName,city,state,website
+New View Roofing,Dallas,TX,newviewroofing.com
+Bert Roofing,Dallas,TX,bertroofing.com
+KPost Roofing & Waterproofing,Dallas,TX,kpostcompany.com
+Firehouse Roofing,Dallas,TX,
+White Rock Roofing,Dallas,TX,
+Bold Roofing,Dallas,TX,
+Wortham Brothers Roofing,Dallas,TX,
+Huddleston Roofing,Dallas,TX,
+Kidd Roofing,Denver,CO,kiddroof.com
+RoofCorp,Denver,CO,
+Peak to Peak Roofing & Exteriors,Denver,CO,
+Rex Roofing & Restoration,Denver,CO,
+Enviro Roofing & Construction,Denver,CO,
+Franco Roofing,Oklahoma City,OK,franco-roofing.com
+Erie Home,Oklahoma City,OK,
+McCann's Roofing and Construction,Edmond,OK,
+MHM Roofing and Construction,Oklahoma City,OK,
+MT Roofing OKC,Oklahoma City,OK,
+Hiner Roofing,Oklahoma City,OK,
+Black Thunder Roofing,Oklahoma City,OK,
+RN Roof,Tulsa,OK,rnroof.com
