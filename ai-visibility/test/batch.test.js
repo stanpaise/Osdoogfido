@@ -55,3 +55,11 @@ test("first email gives the free report and never pitches a paid service", () =>
   assert.match(email, /free, no strings attached/);
   assert.doesNotMatch(email, /every month|\$\d|subscribe|tracking/i);
 });
+
+test("account-level errors stop the batch; one-off errors don't", async () => {
+  const { isAccountError } = await import("../scripts/batch.js");
+  assert.ok(isAccountError('AI service error (400): {"message":"Your credit balance is too low to access the Anthropic API."}'));
+  assert.ok(isAccountError("AI service key is invalid."));
+  assert.ok(!isAccountError("AI service is busy, try again in a minute."));
+  assert.ok(!isAccountError("AI service error (500): overloaded"));
+});

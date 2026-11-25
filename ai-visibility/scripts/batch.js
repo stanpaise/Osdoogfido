@@ -33,6 +33,11 @@ export function parseCsv(text) {
 const csvCell = (v) => (/[",\n]/.test(String(v)) ? `"${String(v).replaceAll('"', '""')}"` : String(v));
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+// Errors that will fail every remaining scan too, so the batch should stop instead of burning through the list.
+export function isAccountError(error) {
+  return /credit balance|authentication|invalid x-api-key|key is invalid|permission/i.test(String(error));
+}
+
 export function draftEmail(r) {
   const { businessName, city } = r.input;
   const top = r.competitors[0];
@@ -94,8 +99,15 @@ async function main() {
       `${r.siteScore}/${r.siteMax}`, r.mode === "live" && top ? `${top.name} (${top.count})` : "", r.site.error ?? ""]);
     // Never send outreach built on demo answers: the competitor claims would be fake.
     if (r.mode === "live" && r.questionsAnswered === 0) {
-      console.log(`AI scan failed (${r.questions[0]?.error ?? "unknown error"}); no email drafted`);
+      const error = r.questions[0]?.error ?? "unknown error";
+      console.log(`AI scan failed (${error}); no email drafted`);
+      // A failed scan has no real score; don't leave a website-only number that looks like a result.
+      summary[summary.length - 1][4] = "";
       summary[summary.length - 1][5] = "FAILED";
+      if (isAccountError(error)) {
+        console.log("\nStopping: the API account can't be used (out of credit or bad key). Fix it, then re-run.");
+        break;
+      }
       continue;
     }
     if (r.mode === "live") emails.push(`## ${input.businessName} (${input.website})\n\n${draftEmail(r)}`);
