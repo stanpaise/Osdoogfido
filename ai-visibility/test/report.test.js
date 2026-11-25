@@ -29,3 +29,9 @@ test("report explains a blocked website instead of showing failed checks", () =>
   assert.match(html, /blocked our automated check/);
   assert.doesNotMatch(html, /Phone number visible/);
 });
+
+test("report gives value without a sales pitch", () => {
+  const html = renderReport(base);
+  assert.doesNotMatch(html, /monthly|\$\d|price|subscribe/i);
+  assert.match(html, /Questions\?/);
+});

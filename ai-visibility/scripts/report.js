@@ -73,10 +73,10 @@ ${competitorRows ? `<h2>Competitors AI recommends most in ${esc(city)}</h2>
 <h2>Website check</h2>
 ${siteRows}
 
-<h2>Next step</h2>
-<p>Want to know when this changes? I re-run these questions every month and alert you when a competitor moves ahead of you or when your fixes start working. Just reply to the email this report came with.</p>
+<h2>Questions?</h2>
+<p>Happy to walk you through any of this. Just reply to the email this report came with.</p>
 
-<div class="note">How this was tested: each question was put to an AI assistant with live web search on the date above, from the perspective of a homeowner in ${esc(place)}. AI answers vary from day to day and between assistants, so treat this as a snapshot. Monthly tracking shows the trend and alerts you when a competitor moves ahead.</div>
+<div class="note">How this was tested: each question was put to an AI assistant with live web search on the date above, from the perspective of a homeowner in ${esc(place)}. AI answers vary from day to day and between assistants, so treat this as a snapshot.</div>
 </body></html>`;
 }
 
