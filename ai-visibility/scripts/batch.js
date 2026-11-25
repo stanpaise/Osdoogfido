@@ -37,14 +37,23 @@ export function draftEmail(r) {
   const { businessName, city } = r.input;
   const top = r.competitors[0];
   const asked = r.questionsAnswered;
+  const leading = r.mentionedIn * 2 > asked;
+  const intro = `I asked an AI assistant ${asked} questions homeowners ask about roofers in ${city}.`;
   const opener = r.mentionedIn === 0
-    ? `I asked an AI assistant ${asked} questions homeowners ask about roofers in ${city}. It recommended ${top ? `${top.name} in ${top.count} of ${asked} answers` : "other roofers"}. ${businessName} wasn't mentioned in any of them.`
-    : `I asked an AI assistant ${asked} questions homeowners ask about roofers in ${city}. ${businessName} came up in ${r.mentionedIn} of ${asked}${top ? `, while ${top.name} came up in ${top.count}` : ""}.`;
-  const fixes = r.fixes.slice(0, 3).map((f, i) => `${i + 1}. ${f}`).join("\n");
+    ? `${intro} It recommended ${top ? `${top.name} in ${top.count} of ${asked} answers` : "other roofers"}. ${businessName} wasn't mentioned in any of them.`
+    : leading
+      ? `${intro} Good news: ${businessName} came up in ${r.mentionedIn} of ${asked}.${top ? ` But ${top.name} is right behind you at ${top.count} of ${asked}.` : ""}`
+      : `${intro} ${businessName} came up in ${r.mentionedIn} of ${asked}${top ? `, while ${top.name} came up in ${top.count}` : ""}.`;
+  const topFixes = r.fixes.slice(0, 3);
+  const countWord = ["", "one fix", "two fixes", "three fixes"][topFixes.length];
+  const fixes = topFixes.map((f, i) => `${i + 1}. ${f}`).join("\n");
+  const fixBlock = topFixes.length ? ` The ${countWord} that would move it most:\n\n${fixes}` : "";
+  const close = leading
+    ? "AI answers shift month to month. I can re-run this every month and alert you the moment a competitor overtakes you. Want the full report?"
+    : "I can re-run this every month and alert you when a competitor overtakes you. Want the full report?";
   return `Subject: ${businessName} vs ${top ? top.name : "competitors"} in AI search\n\n` +
     `Hi,\n\n${opener}\n\nMore homeowners now ask ChatGPT-style assistants who to hire before they ever open Google. ` +
-    `Your AI visibility score is ${r.score}/100. The three fixes that would move it most:\n\n${fixes}\n\n` +
-    `I can re-run this every month and alert you when a competitor overtakes you. Want the full report?\n`;
+    `Your AI visibility score is ${r.score}/100.${fixBlock}\n\n${close}\n`;
 }
 
 async function main() {
