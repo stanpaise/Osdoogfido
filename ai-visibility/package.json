@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test test/*.test.js",
-    "batch": "node scripts/batch.js"
+    "batch": "node scripts/batch.js",
+    "report": "node scripts/report.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0"

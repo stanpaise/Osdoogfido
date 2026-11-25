@@ -61,4 +61,12 @@ Writes `results/<date>/summary.csv`, one JSON report per roofer, and (live mode 
 
 `prospects.csv` has 27 roofers with verified websites across Dallas, Denver, Oklahoma City and Tulsa (`batch2.csv` is the 21 added second). Names still missing a website are listed at the bottom.
 
+## Client report (when a roofer says "send it")
+
+```bash
+npm run report -- --name "MHM Roofing" --city Edmond --state OK --website mhmroof.com
+```
+
+Runs a fresh live scan and writes `results/reports/<roofer>-<date>.pdf` (plus .html and .json): who the AI recommended for each question, top competitors, fixes, and the website check. `--from <scan.json>` builds the report from an existing scan instead. Needs `AIV_ANTHROPIC_KEY`; refuses to build from demo data.
+
 See [VALIDATION.md](VALIDATION.md) for how to prove people will pay before building more.
