@@ -20,13 +20,13 @@ npm test
 Without an API key it runs in **demo mode**: AI answers are sample data, but the website audit is real. For real scans:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # from console.anthropic.com
+export AIV_ANTHROPIC_KEY=sk-ant-...   # from console.anthropic.com
 npm start
 ```
 
 | Setting | Default | What it does |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | none | Enables live scans |
+| `AIV_ANTHROPIC_KEY` | none | Enables live scans (`ANTHROPIC_API_KEY` also works locally, but Claude Code cloud sessions don't pass it through) |
 | `AIV_MODE` | `live` if key set, else `demo` | Force `demo` or `live` |
 | `AIV_MODEL` | `claude-opus-5-5` | Model used for answers and extraction |
 | `AIV_SCANS_PER_HOUR` | `5` | Scans allowed per visitor per hour (each live scan costs money) |

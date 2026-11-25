@@ -1,6 +1,6 @@
 // Scan a list of roofers and write a summary plus a ready-to-send cold email for each.
 //   node scripts/batch.js prospects.csv            # demo mode: real website audit only, no emails
-//   node scripts/batch.js prospects.csv --confirm  # live mode (needs ANTHROPIC_API_KEY): spends API credit
+//   node scripts/batch.js prospects.csv --confirm  # live mode (needs AIV_ANTHROPIC_KEY): spends API credit
 import fs from "node:fs/promises";
 import path from "node:path";
 import { runScan, scanMode, validateInput } from "../src/scan.js";
@@ -92,7 +92,7 @@ async function main() {
   await fs.writeFile(path.join(outDir, "summary.csv"), summary.map((r) => r.map(csvCell).join(",")).join("\n") + "\n");
   if (emails.length) await fs.writeFile(path.join(outDir, "outreach.md"), `# Outreach drafts\n\nReview each before sending.\n\n${emails.join("\n---\n\n")}`);
   console.log(`\nWrote ${outDir}/summary.csv${emails.length ? " and outreach.md" : ""}.`);
-  if (mode !== "live") console.log("Demo mode: website audits are real; AI results and emails need ANTHROPIC_API_KEY.");
+  if (mode !== "live") console.log("Demo mode: website audits are real; AI results and emails need AIV_ANTHROPIC_KEY.");
   if (skipped.length) console.log(`Skipped ${skipped.length} with no website: ${skipped.map((r) => r.businessName).join(", ")}`);
 }
 

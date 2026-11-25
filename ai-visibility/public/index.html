@@ -59,7 +59,7 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
 
 fetch("/api/health").then(r => r.json()).then(h => {
-  if (h.mode !== "live") $("mode").append(el("div", { className: "banner", textContent: "Demo mode: AI answers are sample data. Set ANTHROPIC_API_KEY to run real scans. The website audit is real." }));
+  if (h.mode !== "live") $("mode").append(el("div", { className: "banner", textContent: "Demo mode: AI answers are sample data. Set AIV_ANTHROPIC_KEY to run real scans. The website audit is real." }));
 }).catch(() => {});
 
 $("form").addEventListener("submit", async (e) => {

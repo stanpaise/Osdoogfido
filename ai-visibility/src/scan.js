@@ -4,8 +4,13 @@ import { runDemoQuestion, runLiveQuestion } from "./ai-check.js";
 import { auditSite } from "./site-audit.js";
 import { scoreScan } from "./score.js";
 
+// AIV_ANTHROPIC_KEY is preferred: cloud coding sessions reserve ANTHROPIC_API_KEY for themselves.
+export function apiKey() {
+  return process.env.AIV_ANTHROPIC_KEY || process.env.ANTHROPIC_API_KEY || "";
+}
+
 export function scanMode() {
-  return process.env.AIV_MODE || (process.env.ANTHROPIC_API_KEY ? "live" : "demo");
+  return process.env.AIV_MODE || (apiKey() ? "live" : "demo");
 }
 
 export function validateInput(body) {
@@ -26,7 +31,7 @@ let client;
 export async function runScan(input, { mode = scanMode() } = {}) {
   const prompts = buildPrompts(input.city, input.state);
   const questionsPromise = mode === "live"
-    ? Promise.all(prompts.map((q) => runLiveQuestion((client ??= new Anthropic()), q, input)))
+    ? Promise.all(prompts.map((q) => runLiveQuestion((client ??= new Anthropic({ apiKey: apiKey() })), q, input)))
     : Promise.resolve(prompts.map((q, i) => runDemoQuestion(q, i, input.businessName)));
 
   const [questions, site] = await Promise.all([questionsPromise, auditSite(input)]);

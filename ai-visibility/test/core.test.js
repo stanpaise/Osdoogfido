@@ -91,3 +91,22 @@ test("rate limit caps scans per visitor per hour", () => {
   assert.ok(allowScan("5.6.7.8", t + 10));
   assert.ok(allowScan("1.2.3.4", t + 3_600_100));
 });
+
+test("scanner reads its own key variable first", async () => {
+  const { apiKey, scanMode } = await import("../src/scan.js");
+  const saved = { a: process.env.AIV_ANTHROPIC_KEY, b: process.env.ANTHROPIC_API_KEY, m: process.env.AIV_MODE };
+  delete process.env.AIV_MODE;
+  try {
+    delete process.env.AIV_ANTHROPIC_KEY; delete process.env.ANTHROPIC_API_KEY;
+    assert.equal(scanMode(), "demo");
+    process.env.ANTHROPIC_API_KEY = "fallback";
+    assert.equal(apiKey(), "fallback");
+    process.env.AIV_ANTHROPIC_KEY = "preferred";
+    assert.equal(apiKey(), "preferred");
+    assert.equal(scanMode(), "live");
+  } finally {
+    for (const [k, v] of [["AIV_ANTHROPIC_KEY", saved.a], ["ANTHROPIC_API_KEY", saved.b], ["AIV_MODE", saved.m]]) {
+      if (v === undefined) delete process.env[k]; else process.env[k] = v;
+    }
+  }
+});
