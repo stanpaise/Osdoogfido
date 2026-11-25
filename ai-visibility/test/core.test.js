@@ -110,3 +110,12 @@ test("scanner reads its own key variable first", async () => {
     }
   }
 });
+
+test("a site that blocks the scanner isn't scored or given website fixes", () => {
+  const questions = [{ question: "q", recommended: ["Smith Roofing"], sources: [] }];
+  const siteChecks = [{ weight: 5, passed: false, fix: "add schema" }];
+  const r = scoreScan({ businessName: "Smith Roofing", website: "x.com", questions, siteChecks, siteReadable: false });
+  assert.equal(r.score, 100);
+  assert.equal(r.siteMax, 0);
+  assert.ok(!r.fixes.includes("add schema"));
+});

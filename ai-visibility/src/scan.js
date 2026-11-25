@@ -40,6 +40,6 @@ export async function runScan(input, { mode = scanMode() } = {}) {
     input,
     scannedAt: new Date().toISOString(),
     site: { ok: site.ok, url: site.url, error: site.error, checks: site.checks },
-    ...scoreScan({ ...input, questions, siteChecks: site.checks }),
+    ...scoreScan({ ...input, questions, siteChecks: site.checks, siteReadable: site.ok }),
   };
 }

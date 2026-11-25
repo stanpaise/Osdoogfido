@@ -5,7 +5,7 @@ const AI_POINTS = 60;
 const SITE_POINTS = 40;
 const RANK_CREDIT = { 1: 1, 2: 0.85, 3: 0.7 };
 
-export function scoreScan({ businessName, website, questions, siteChecks }) {
+export function scoreScan({ businessName, website, questions, siteChecks, siteReadable = true }) {
   const perQuestion = questions.map((q) => ({
     ...q,
     ...findTarget({ businessName, website, recommended: q.recommended, sources: q.sources }),
@@ -17,7 +17,9 @@ export function scoreScan({ businessName, website, questions, siteChecks }) {
 
   const totalWeight = siteChecks.reduce((s, c) => s + c.weight, 0);
   const passedWeight = siteChecks.filter((c) => c.passed).reduce((s, c) => s + c.weight, 0);
-  const siteScore = totalWeight ? Math.round((passedWeight / totalWeight) * SITE_POINTS) : 0;
+  const siteScore = siteReadable && totalWeight ? Math.round((passedWeight / totalWeight) * SITE_POINTS) : 0;
+  // If the site blocked us, score on AI answers alone rather than punishing a site we never read.
+  const score = siteReadable ? aiScore + siteScore : answered.length ? Math.round((aiCredit / answered.length) * 100) : 0;
 
   // Competitors: how many answers named them, merging near-duplicate spellings.
   const competitors = [];
@@ -33,7 +35,7 @@ export function scoreScan({ businessName, website, questions, siteChecks }) {
   competitors.sort((a, b) => b.count - a.count);
 
   const mentionedIn = answered.filter((q) => q.mentioned).length;
-  const fixes = siteChecks.filter((c) => !c.passed).sort((a, b) => b.weight - a.weight).map((c) => c.fix);
+  const fixes = (siteReadable ? siteChecks : []).filter((c) => !c.passed).sort((a, b) => b.weight - a.weight).map((c) => c.fix);
   if (mentionedIn < answered.length) {
     fixes.push(
       "Get listed where AI assistants look: complete your Google Business Profile, and make sure your name, address and phone match exactly on Yelp, BBB, Angi and Nextdoor.",
@@ -42,11 +44,12 @@ export function scoreScan({ businessName, website, questions, siteChecks }) {
   }
 
   return {
-    score: aiScore + siteScore,
+    score,
     aiScore,
     aiMax: AI_POINTS,
     siteScore,
-    siteMax: SITE_POINTS,
+    siteMax: siteReadable ? SITE_POINTS : 0,
+    siteReadable,
     mentionedIn,
     questionsAnswered: answered.length,
     questions: perQuestion,

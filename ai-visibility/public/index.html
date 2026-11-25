@@ -86,7 +86,7 @@ function render(d) {
   const out = [];
   out.push(el("section", { className: "card" },
     el("div", { className: "score" }, el("b", { textContent: d.score }), el("span", { textContent: "/ 100 AI visibility" })),
-    el("p", { className: "sub", textContent: `Recommended in ${d.mentionedIn} of ${d.questionsAnswered} AI answers (${d.aiScore}/${d.aiMax}) · Website readiness ${d.siteScore}/${d.siteMax}` })));
+    el("p", { className: "sub", textContent: `Recommended in ${d.mentionedIn} of ${d.questionsAnswered} AI answers (${d.aiScore}/${d.aiMax}) · ${d.siteReadable ? `Website readiness ${d.siteScore}/${d.siteMax}` : "Website couldn't be checked, so the score is AI answers only"}` })));
 
   if (d.competitors.length) {
     out.push(el("section", { className: "card" },

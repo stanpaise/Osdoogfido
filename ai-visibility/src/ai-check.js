@@ -101,7 +101,7 @@ export async function runLiveQuestion(client, question, location) {
   } catch (err) {
     const msg = err instanceof Anthropic.RateLimitError ? "AI service is busy, try again in a minute."
       : err instanceof Anthropic.AuthenticationError ? "AI service key is invalid."
-      : err instanceof Anthropic.APIError ? `AI service error (${err.status}).`
+      : err instanceof Anthropic.APIError ? `AI service error (${err.status}): ${String(err.message).slice(0, 200)}`
       : "Couldn't reach the AI service.";
     return { question, answer: "", sources: [], recommended: [], error: msg };
   }

@@ -26,12 +26,22 @@ test("outreach email leads with the competitor and lists top fixes", () => {
 test("leader email says so, and counts fixes correctly", () => {
   const email = draftEmail({
     input: { businessName: "New View Roofing", city: "Dallas" },
-    competitors: [{ name: "Dwell Roofing & Exteriors", count: 4 }],
+    competitors: [{ name: "Dwell Roofing & Exteriors", count: 3 }],
     questionsAnswered: 5, mentionedIn: 4, score: 84,
     fixes: ["fix one", "fix two"],
   });
   assert.match(email, /Good news: New View Roofing came up in 4 of 5/);
-  assert.match(email, /right behind you at 4 of 5/);
+  assert.match(email, /right behind you at 3 of 5/);
   assert.match(email, /The two fixes/);
   assert.doesNotMatch(email, /three fixes/);
+});
+
+test("tie is called a tie", () => {
+  const email = draftEmail({
+    input: { businessName: "Statewide Roofing", city: "Oklahoma City" },
+    competitors: [{ name: "All American Roofing", count: 4 }],
+    questionsAnswered: 5, mentionedIn: 4, score: 63, fixes: [],
+  });
+  assert.match(email, /tied with you at 4 of 5/);
+  assert.doesNotMatch(email, /right behind/);
 });

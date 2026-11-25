@@ -42,7 +42,7 @@ export function draftEmail(r) {
   const opener = r.mentionedIn === 0
     ? `${intro} It recommended ${top ? `${top.name} in ${top.count} of ${asked} answers` : "other roofers"}. ${businessName} wasn't mentioned in any of them.`
     : leading
-      ? `${intro} Good news: ${businessName} came up in ${r.mentionedIn} of ${asked}.${top ? ` But ${top.name} is right behind you at ${top.count} of ${asked}.` : ""}`
+      ? `${intro} Good news: ${businessName} came up in ${r.mentionedIn} of ${asked}.${top ? (top.count >= r.mentionedIn ? ` But ${top.name} is tied with you at ${top.count} of ${asked}.` : ` But ${top.name} is right behind you at ${top.count} of ${asked}.`) : ""}`
       : `${intro} ${businessName} came up in ${r.mentionedIn} of ${asked}${top ? `, while ${top.name} came up in ${top.count}` : ""}.`;
   const topFixes = r.fixes.slice(0, 3);
   const countWord = ["", "one fix", "two fixes", "three fixes"][topFixes.length];
@@ -94,6 +94,11 @@ async function main() {
       r.mode === "live" ? `${r.mentionedIn}/${r.questionsAnswered}` : "n/a (demo)",
       `${r.siteScore}/${r.siteMax}`, r.mode === "live" && top ? `${top.name} (${top.count})` : "", r.site.error ?? ""]);
     // Never send outreach built on demo answers: the competitor claims would be fake.
+    if (r.mode === "live" && r.questionsAnswered === 0) {
+      console.log(`AI scan failed (${r.questions[0]?.error ?? "unknown error"}); no email drafted`);
+      summary[summary.length - 1][5] = "FAILED";
+      continue;
+    }
     if (r.mode === "live") emails.push(`## ${input.businessName} (${input.website})\n\n${draftEmail(r)}`);
     console.log(r.mode === "live" ? `score ${r.score}, mentioned ${r.mentionedIn}/${r.questionsAnswered}` : `site ${r.siteScore}/${r.siteMax}${r.site.error ? ` (${r.site.error})` : ""}`);
   }
