@@ -48,12 +48,11 @@ export function draftEmail(r) {
   const countWord = ["", "one fix", "two fixes", "three fixes"][topFixes.length];
   const fixes = topFixes.map((f, i) => `${i + 1}. ${f}`).join("\n");
   const fixBlock = topFixes.length ? ` The ${countWord} that would move it most:\n\n${fixes}` : "";
-  const close = leading
-    ? "AI answers shift month to month. I can re-run this every month and alert you the moment a competitor overtakes you. Want the full report?"
-    : "I can re-run this every month and alert you when a competitor overtakes you. Want the full report?";
+  // Give before asking: the first email offers only the free report, never a paid service.
+  const close = "I put together a full report showing every question and who the AI recommended for each. Want me to send it over? It's free, no strings attached.";
   return `Subject: ${businessName} vs ${top ? top.name : "competitors"} in AI search\n\n` +
     `Hi,\n\n${opener}\n\nMore homeowners now ask ChatGPT-style assistants who to hire before they ever open Google. ` +
-    `Your AI visibility score is ${r.score}/100.${fixBlock}\n\n${close}\n`;
+    `Your AI visibility score is ${r.score}/100.${fixBlock}\n\n${close}\n\nThanks,\nStanley\n`;
 }
 
 async function main() {

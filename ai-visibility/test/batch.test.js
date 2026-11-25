@@ -45,3 +45,13 @@ test("tie is called a tie", () => {
   assert.match(email, /tied with you at 4 of 5/);
   assert.doesNotMatch(email, /right behind/);
 });
+
+test("first email gives the free report and never pitches a paid service", () => {
+  const email = draftEmail({
+    input: { businessName: "A Roof", city: "Tulsa" },
+    competitors: [{ name: "Arrowhead Roofing", count: 4 }],
+    questionsAnswered: 5, mentionedIn: 4, score: 80, fixes: [],
+  });
+  assert.match(email, /free, no strings attached/);
+  assert.doesNotMatch(email, /every month|\$\d|subscribe|tracking/i);
+});
