@@ -1,0 +1,48 @@
+# Validation prospects. Rows without a website are skipped: look them up on Google Maps and fill them in.
+# Aim for 10 per metro, ideally companies with 50+ Google reviews (established enough to pay $49/mo).
+businessName,city,state,website
+New View Roofing,Dallas,TX,newviewroofing.com
+Bert Roofing,Dallas,TX,bertroofing.com
+KPost Roofing & Waterproofing,Dallas,TX,kpostcompany.com
+Kidd Roofing,Denver,CO,kiddroof.com
+Franco Roofing,Oklahoma City,OK,franco-roofing.com
+RN Roof,Tulsa,OK,rnroof.com
+# Batch 2 (verified 2026-11-25)
+Firehouse Roofing,Dallas,TX,firehouseroofing.com
+Bold Roofing,Dallas,TX,boldroofing.com
+Arrington Roofing,Dallas,TX,arringtonroofing.com
+Scott Roofing & Exteriors,Dallas,TX,scottroofing.com
+StazOn Roofing,Dallas,TX,stazonroof.com
+Peak to Peak Roofing,Denver,CO,peaktopeakroofing.com
+Rex Roofing & Solar,Denver,CO,rexroofing.com
+Enviro Roofing and Construction,Denver,CO,enviroroofing.com
+Bold Brothers Roofing,Denver,CO,boldbrothersroofing.com
+Colorado Preferred Roofing,Denver,CO,coloradopreferredroofing.com
+Metro City Roofing,Denver,CO,metrocityroofing.com
+Jenesis Roofing,Denver,CO,jenesisroofing.com
+Beard Brothers Roofing,Denver,CO,beardbrothersroofing.com
+Formula Roofing,Denver,CO,formularoofing.com
+MHM Roofing and Construction,Edmond,OK,mhmroof.com
+Black Thunder Roofing,Oklahoma City,OK,blackthunderroofing.com
+Mallard Roofing,Oklahoma City,OK,mallardroofing.com
+Statewide Roofing,Oklahoma City,OK,statewideroofing.com
+Conrad's Roofing,Tulsa,OK,conradsroofing.com
+A-Best Roofing,Tulsa,OK,abestroofing.com
+Messick Roofing,Tulsa,OK,messickroofing.com
+# Batch 3 (verified 2026-11-25)
+TGI Roofing,Dallas,TX,tgiroofing.com
+Access Modern Roofing,Dallas,TX,accessmodernroofing.com
+Results Roofing,Dallas,TX,resultsroofing.com
+New Elite Roofing and Construction,Dallas,TX,neweliteroofing.com
+Reveles Roofing,Dallas,TX,revelesroofing.com
+CENCO Roofing,Denver,CO,cencoroofing.com
+Ethos Roofing,Denver,CO,ethosroofing.com
+777 Roofing,Oklahoma City,OK,777roofing.com
+Patriot Roofing,Oklahoma City,OK,patriotroofing.com
+Palladium Roofing,Oklahoma City,OK,palladiumroofing.com
+Thunder City Roofing & Construction,Oklahoma City,OK,thundercityroofing.com
+Watson Roofing,Oklahoma City,OK,watsonroofingokc.com
+Dukes Roofing,Tulsa,OK,dukesroofing.com
+Maxx Roofing & Construction,Tulsa,OK,maxxroofing.com
+Whirlwind Roofing and Construction,Tulsa,OK,whirlwindroofing.com
+# Still need a website (couldn't verify): White Rock Roofing, Wortham Brothers Roofing, Huddleston Roofing, Storm Roofing Heroes, Collins Roofing and Restoration, Priority Roofing, Cannon Roofing, Vantage Roofing, RoofCorp, McCann's Roofing, MT Roofing OKC, Hiner Roofing, Elliott Roofing, Green Country Roofing
