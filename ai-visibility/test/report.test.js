@@ -35,3 +35,8 @@ test("report gives value without a sales pitch", () => {
   assert.doesNotMatch(html, /monthly|\$\d|price|subscribe/i);
   assert.match(html, /Questions\?/);
 });
+
+test("hand-checked (manual) results build a report naming the assistant", () => {
+  const html = renderReport({ ...base, mode: "manual", assistant: "ChatGPT (free version)" });
+  assert.match(html, /put to ChatGPT \(free version\)/);
+});

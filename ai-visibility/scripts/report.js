@@ -1,6 +1,7 @@
 // Build a client-ready AI visibility report (HTML + PDF) for one roofer.
 //   node scripts/report.js --name "MHM Roofing" --city Edmond --state OK --website mhmroof.com
 //   node scripts/report.js --from results/2026-11-25/mhm-roofing.json   # reuse an existing scan
+//   node scripts/report.js --from manual.json   # mode "manual": answers gathered by hand in free ChatGPT ($0)
 // Live scans need AIV_ANTHROPIC_KEY. PDF output needs Chrome/Chromium (set CHROME_PATH if not found).
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -76,7 +77,7 @@ ${siteRows}
 <h2>Questions?</h2>
 <p>Happy to walk you through any of this. Just reply to the email this report came with.</p>
 
-<div class="note">How this was tested: each question was put to an AI assistant with live web search on the date above, from the perspective of a homeowner in ${esc(place)}. AI answers vary from day to day and between assistants, so treat this as a snapshot.</div>
+<div class="note">How this was tested: each question was put to ${esc(r.assistant || "an AI assistant with live web search")} on the date above, from the perspective of a homeowner in ${esc(place)}. AI answers vary from day to day and between assistants, so treat this as a snapshot.</div>
 </body></html>`;
 }
 
@@ -105,7 +106,8 @@ async function main() {
     }
     r = await runScan(validateInput({ businessName: args.name, city: args.city, state: args.state, website: args.website }));
   }
-  if (r.mode !== "live" || r.questionsAnswered === 0) {
+  // "manual" = questions asked by hand in a free assistant (e.g. ChatGPT) and entered as JSON; no API cost.
+  if (!["live", "manual"].includes(r.mode) || r.questionsAnswered === 0) {
     console.error("This scan has no real AI answers; not building a client report from it.");
     process.exit(1);
   }
